@@ -17,23 +17,23 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const { token, loading } = useAuth();
+  const { user, loading } = useAuth();
   
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
   
-  return token ? <>{children}</> : <Navigate to="/login" />;
+  return user ? <>{children}</> : <Navigate to="/login" />;
 };
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { token, loading } = useAuth();
+  const { user, loading } = useAuth();
   
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
   
-  return !token ? <>{children}</> : <Navigate to="/dashboard" />;
+  return !user ? <>{children}</> : <Navigate to="/dashboard" />;
 };
 
 const App = () => (

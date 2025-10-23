@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authAPI, User } from '@/lib/api';
+import { supabase } from '@/integrations/supabase/client';
+import { authAPI, Profile } from '@/lib/supabase';
+import { User } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
+  profile: Profile | null;
   login: (email: string, password: string) => Promise<void>;
   register: (data: {
     email: string;
@@ -20,32 +22,45 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const initAuth = async () => {
-      const storedToken = localStorage.getItem('token');
-      if (storedToken) {
-        try {
-          const response = await authAPI.getProfile();
-          setUser(response.data.user);
-        } catch (error) {
-          localStorage.removeItem('token');
-          setToken(null);
-        }
+    // Check active sessions and sets the user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadProfile(session.user.id);
       }
       setLoading(false);
-    };
-    initAuth();
+    });
+
+    // Listen for changes on auth state (logged in, signed out, etc.)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadProfile(session.user.id);
+      } else {
+        setProfile(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
+  const loadProfile = async (userId: string) => {
+    try {
+      const profileData = await authAPI.getProfile(userId);
+      setProfile(profileData);
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    }
+  };
+
   const login = async (email: string, password: string) => {
-    const response = await authAPI.login({ email, password });
-    const { token: newToken, user: newUser } = response.data;
-    localStorage.setItem('token', newToken);
-    setToken(newToken);
-    setUser(newUser);
+    await authAPI.login({ email, password });
   };
 
   const register = async (data: {
@@ -55,21 +70,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     lastName: string;
     hederaAccountId?: string;
   }) => {
-    const response = await authAPI.register(data);
-    const { token: newToken, user: newUser } = response.data;
-    localStorage.setItem('token', newToken);
-    setToken(newToken);
-    setUser(newUser);
+    await authAPI.register(data);
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
-    setUser(null);
+  const logout = async () => {
+    await authAPI.logout();
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, profile, login, register, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

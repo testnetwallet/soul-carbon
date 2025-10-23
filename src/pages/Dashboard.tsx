@@ -4,7 +4,7 @@ import { TrendingUp, TrendingDown, Leaf, Wallet, Plus, ShoppingCart } from 'luci
 import Header from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { emissionsAPI, offsetsAPI, Emission } from '@/lib/api';
+import { emissionsAPI, offsetsAPI, Emission } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 const Dashboard = () => {
@@ -20,26 +20,25 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [emissionsRes, balanceRes] = await Promise.all([
+        const [emissionsRes, balances] = await Promise.all([
           emissionsAPI.getHistory({ limit: 5 }),
           offsetsAPI.getBalance(),
         ]);
 
-        const emissionsData = emissionsRes.data.data.emissions || [];
+        const emissionsData = emissionsRes.emissions || [];
         setEmissions(emissionsData);
 
         const totalEmissions = emissionsData.reduce(
-          (sum: number, e: Emission) => sum + e.co2eKg,
+          (sum: number, e: Emission) => sum + e.co2e_kg,
           0
         );
-        const totalOffsets = balanceRes.data.data?.totalCo2eKg || 0;
-        const hbarBalance = balanceRes.data.data?.hbarBalance || 0;
+        const totalOffsets = balances.reduce((sum, b) => sum + Number(b.total_kg_co2e), 0);
 
         setStats({
           totalEmissions: Math.round(totalEmissions),
           totalOffsets: Math.round(totalOffsets),
           netFootprint: Math.round(totalEmissions - totalOffsets),
-          hbarBalance: Math.round(hbarBalance * 100) / 100,
+          hbarBalance: 0,
         });
       } catch (error) {
         toast.error('Failed to load dashboard data');
@@ -172,17 +171,17 @@ const Dashboard = () => {
               <div className="space-y-4">
                 {emissions.map((emission) => (
                   <div
-                    key={emission._id}
+                    key={emission.id}
                     className="flex items-center justify-between border-b pb-4 last:border-0"
                   >
                     <div>
-                      <p className="font-medium capitalize">{emission.emissionType}</p>
+                      <p className="font-medium capitalize">{emission.emission_type}</p>
                       <p className="text-sm text-muted-foreground">
                         {emission.amount} {emission.unit} • {emission.category}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">{emission.co2eKg} kg CO2e</p>
+                      <p className="font-semibold">{emission.co2e_kg} kg CO2e</p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(emission.date).toLocaleDateString()}
                       </p>

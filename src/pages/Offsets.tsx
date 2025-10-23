@@ -4,7 +4,7 @@ import Header from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { offsetsAPI, OffsetProject } from '@/lib/api';
+import { offsetsAPI, OffsetProject } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 const Offsets = () => {
@@ -14,8 +14,8 @@ const Offsets = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await offsetsAPI.getMarketplace();
-        setProjects(response.data.data.projects || []);
+        const { projects: data } = await offsetsAPI.getMarketplace();
+        setProjects(data || []);
       } catch (error) {
         toast.error('Failed to load offset projects');
       } finally {
@@ -63,15 +63,15 @@ const Offsets = () => {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
-              <Card key={project.projectId} className="flex flex-col hover:shadow-glow transition-all">
+              <Card key={project.project_id} className="flex flex-col hover:shadow-glow transition-all">
                 <CardHeader>
                   <div className="flex items-start justify-between mb-2">
-                    <Badge className={projectTypeColors[project.projectType] || projectTypeColors.other}>
-                      {project.projectType.replace(/_/g, ' ')}
+                    <Badge className={projectTypeColors[project.project_type] || projectTypeColors.other}>
+                      {project.project_type.replace(/_/g, ' ')}
                     </Badge>
                     <Badge variant="outline" className="gap-1">
                       <CheckCircle className="h-3 w-3" />
-                      {project.verificationStandard}
+                      {project.verification_standard}
                     </Badge>
                   </div>
                   <CardTitle className="text-xl">{project.name}</CardTitle>
@@ -88,12 +88,12 @@ const Offsets = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Price per kg CO2e</span>
-                      <span className="font-semibold text-lg">{project.costPerKg} HBAR</span>
+                      <span className="font-semibold text-lg">{project.cost_per_kg} HBAR</span>
                     </div>
                     
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Available credits</span>
-                      <span className="font-medium">{project.availableCredits.toLocaleString()} kg</span>
+                      <span className="font-medium">{project.available_credits.toLocaleString()} kg</span>
                     </div>
 
                     <Button 

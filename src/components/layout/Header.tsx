@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const Header = () => {
-  const { user, logout } = useAuth();
+  const { profile, logout } = useAuth();
   const location = useLocation();
 
   const navItems = [
@@ -50,7 +50,7 @@ const Header = () => {
 
         <div className="flex items-center gap-4">
           <span className="hidden sm:inline text-sm text-muted-foreground">
-            {user?.profile.firstName} {user?.profile.lastName}
+            {profile?.first_name} {profile?.last_name}
           </span>
           
           <DropdownMenu>

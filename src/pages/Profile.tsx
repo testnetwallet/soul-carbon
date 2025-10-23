@@ -5,9 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
-  if (!user) return null;
+  if (!user || !profile) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -33,7 +33,7 @@ const Profile = () => {
                 <div>
                   <p className="text-sm text-muted-foreground">Name</p>
                   <p className="font-medium">
-                    {user.profile.firstName} {user.profile.lastName}
+                    {profile.first_name} {profile.last_name}
                   </p>
                 </div>
               </div>
@@ -55,7 +55,7 @@ const Profile = () => {
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground">Hedera Account ID</p>
                   <p className="font-mono text-sm font-medium">
-                    {user.hederaAccountId || 'Not connected'}
+                    {profile.hedera_account_id || 'Not connected'}
                   </p>
                 </div>
               </div>
@@ -67,19 +67,13 @@ const Profile = () => {
                 <div>
                   <p className="text-sm text-muted-foreground">Member since</p>
                   <p className="font-medium">
-                    {new Date(user.createdAt).toLocaleDateString('en-US', {
+                    {new Date(profile.created_at).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',
                     })}
                   </p>
                 </div>
-              </div>
-
-              <div className="pt-4">
-                <Badge variant={user.isActive ? 'default' : 'secondary'}>
-                  {user.isActive ? 'Active' : 'Inactive'}
-                </Badge>
               </div>
             </CardContent>
           </Card>
