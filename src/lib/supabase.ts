@@ -66,9 +66,17 @@ export const authAPI = {
     lastName: string;
     hederaAccountId?: string;
   }) => {
+    const redirectUrl = `${window.location.origin}/`;
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
+      options: {
+        emailRedirectTo: redirectUrl,
+        data: {
+          first_name: data.firstName,
+          last_name: data.lastName,
+        }
+      }
     });
 
     if (authError) throw authError;
@@ -104,15 +112,15 @@ export const authAPI = {
     if (error) throw error;
   },
 
-  getProfile: async (userId: string) => {
+  getProfile: async (userId: string): Promise<Profile | null> => {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
-    return data;
+    return data ?? null;
   },
 };
 
