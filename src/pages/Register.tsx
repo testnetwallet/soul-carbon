@@ -55,7 +55,12 @@ const Register = () => {
       toast.success('Account created successfully!');
       navigate('/dashboard');
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Registration failed');
+      const errorMessage = error.message || error.response?.data?.error || 'Registration failed';
+      if (errorMessage.includes('already registered') || errorMessage.includes('User already registered')) {
+        toast.error('This email is already registered. Please login instead.');
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }

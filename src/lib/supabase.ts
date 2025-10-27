@@ -18,10 +18,10 @@ export interface OffsetProject {
   name: string;
   description: string;
   location: string;
-  project_type: 'reforestation' | 'renewable_energy' | 'methane_capture' | 'direct_air_capture' | 'other';
+  project_type: string;
   cost_per_kg: number;
   available_credits: number;
-  verification_standard: 'VCS' | 'Gold Standard' | 'CDM' | 'CAR';
+  verification_standard: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -44,7 +44,7 @@ export interface OffsetPurchase {
 export interface Emission {
   id: string;
   user_id: string;
-  emission_type: 'travel' | 'energy' | 'food' | 'other';
+  emission_type: string;
   category: string;
   amount: number;
   unit: string;
